@@ -23,7 +23,7 @@ export const PUBLIC_KEY_PATH = "/etc/wireguard/public.key";
 export const CONFIG_PATH = "/etc/wireguard/wg0.conf";
 
 // IP Pool Manager Instance
-export const poolManager = createIPPoolManager(ADDRESS);
+export const poolManager = createIPPoolManager(ADDRESS + "/24");
 
 // API Endpoints
 import peerRoutes from "./routes/peer.route";

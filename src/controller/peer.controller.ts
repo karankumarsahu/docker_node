@@ -1,12 +1,25 @@
 import { Request, Response } from "express";
+import { promises as fs } from "fs";
 import { ISKUBERNETES, poolManager, PUBLIC_KEY_PATH } from "../index";
 import { getRandomIndex } from "../utils/getRandomIndex.utils";
-import { addPeerFunction, removePeerFunction } from "../utils/peer.utils";
-import { promises as fs } from "fs";
+import { 
+  addPeerWithKubernetes, 
+  addPeerWithoutKubernetes, 
+  removePeerWithKubernetes, 
+  removePeerWithoutKubernetes 
+} from "../utils/peer.utils";
 
-/**
- * Add a peer to the WireGuard server and IP pool.
- */
+// Helper function to read server public key
+const readServerPublicKey = async (): Promise<string> => {
+  try {
+    const serverPublicKey = await fs.readFile(PUBLIC_KEY_PATH, "utf-8");
+    return serverPublicKey.trim();
+  } catch (error) {
+    throw new Error("Failed to read server public key");
+  }
+};
+
+// Add Peer Controller
 export const addPeer = async (req: Request, res: Response): Promise<void> => {
   const { clientPublicKey } = req.body;
 
@@ -23,35 +36,38 @@ export const addPeer = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    console.log("Assigned IP:", assignedIP);
-
-    let randomPort: string | undefined;
-
     if (ISKUBERNETES === "true") {
       const index = await getRandomIndex();
-      randomPort = `51820${index}`;
-      await addPeerFunction(clientPublicKey, assignedIP, index, ISKUBERNETES);
+      const randomPorts = `5182${index}`;
+
+      await addPeerWithKubernetes(clientPublicKey, assignedIP, index);
+
+      const serverPublicKey = await readServerPublicKey();
+
+      res.status(200).json({
+        message: "Peer added successfully",
+        assignedIP,
+        randomPorts,
+        serverPublicKey,
+      });
     } else {
-      await addPeerFunction(clientPublicKey, assignedIP, 0, ISKUBERNETES);
+      await addPeerWithoutKubernetes(clientPublicKey, assignedIP);
+
+      const serverPublicKey = await readServerPublicKey();
+
+      res.status(200).json({
+        message: "Peer added successfully",
+        assignedIP,
+        serverPublicKey,
+      });
     }
-
-    const serverPublicKey = await fs.readFile(PUBLIC_KEY_PATH, "utf-8");
-
-    res.status(200).json({
-      message: "Peer added successfully",
-      assignedIP,
-      serverPublicKey: serverPublicKey.trim(),
-      ...(ISKUBERNETES === "true" && { randomPort }),
-    });
   } catch (error) {
-    console.error("Add Peer Error:", error instanceof Error ? error.message : error);
-    res.status(500).json({ error: "Failed to add peer" });
+    console.error("Add Peer Error:", error);
+    res.status(500).json({ error: error instanceof Error ? error.message : error });
   }
 };
 
-/**
- * Remove a peer from the WireGuard server and IP pool.
- */
+// Remove Peer Controller
 export const removePeer = async (req: Request, res: Response): Promise<void> => {
   const { clientPublicKey } = req.body;
 
@@ -61,12 +77,13 @@ export const removePeer = async (req: Request, res: Response): Promise<void> => 
   }
 
   try {
-    const index = ISKUBERNETES === "true" ? await getRandomIndex() : 0;
+    if (ISKUBERNETES === "true") {
+      const index = await getRandomIndex();
+      await removePeerWithKubernetes(clientPublicKey, index);
+    } else {
+      await removePeerWithoutKubernetes(clientPublicKey);
+    }
 
-    // Remove peer from WireGuard
-    await removePeerFunction(clientPublicKey, index, ISKUBERNETES);
-
-    // Remove peer from IP pool
     const success = poolManager.removePeer(clientPublicKey);
 
     if (success) {
@@ -76,7 +93,7 @@ export const removePeer = async (req: Request, res: Response): Promise<void> => 
       res.status(404).json({ error: "Peer not found" });
     }
   } catch (error) {
-    console.error("Remove Peer Error:", error instanceof Error ? error.message : error);
-    res.status(500).json({ error: "Failed to remove peer" });
+    console.error("Remove Peer Error:", error);
+    res.status(500).json({ error: error instanceof Error ? error.message : error });
   }
 };

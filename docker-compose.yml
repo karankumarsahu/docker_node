@@ -11,7 +11,7 @@ services:
       - "51820:51820/udp" # WireGuard default UDP port
     environment:
       - ISKUBERNETES=false
-      - ADDRESS=10.0.0.1/24
+      - ADDRESS=10.0.0.0
       - PORT=8000
       - REDIS_URL=redis://redis:6379
     cap_add:

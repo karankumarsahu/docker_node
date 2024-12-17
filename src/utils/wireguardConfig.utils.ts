@@ -6,7 +6,7 @@ import { executeCommand } from "./executeCommand.utils";
 export const createConfigFile = async (privateKey: string): Promise<void> => {
   const configContent = `[Interface]
 PrivateKey = ${privateKey}
-Address = ${ADDRESS + 1}
+Address = ${ADDRESS}/24
 ListenPort = 51820
 SaveConfig = true
 PostUp = ufw route allow in on wg0 out on enX0
