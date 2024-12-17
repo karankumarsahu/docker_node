@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  node_wireguard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_wireguard
+    ports:
+      - "8000:8000" # Node.js HTTP server
+      - "51820:51820/udp" # WireGuard default UDP port
+    environment:
+      - ISKUBERNETES=false
+      - ADDRESS=10.0.0.1/24
+      - PORT=8000
+      - REDIS_URL=redis://redis:6379
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - wg-network
+    volumes:
+      - ./etc/wireguard:/etc/wireguard # WireGuard config files
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    networks:
+      - wg-network
+    ports:
+      - "6379:6379" # Redis service port
+
+networks:
+  wg-network:
+    driver: bridge
