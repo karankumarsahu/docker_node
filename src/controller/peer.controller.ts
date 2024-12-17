@@ -32,7 +32,7 @@ export const addPeer = async (req: Request, res: Response): Promise<void> => {
       randomPort = `51820${index}`;
       await addPeerFunction(clientPublicKey, assignedIP, index, ISKUBERNETES);
     } else {
-      await addPeerFunction(clientPublicKey, assignedIP, -1, ISKUBERNETES);
+      await addPeerFunction(clientPublicKey, assignedIP, 0, ISKUBERNETES);
     }
 
     const serverPublicKey = await fs.readFile(PUBLIC_KEY_PATH, "utf-8");
@@ -61,7 +61,7 @@ export const removePeer = async (req: Request, res: Response): Promise<void> => 
   }
 
   try {
-    const index = ISKUBERNETES === "true" ? await getRandomIndex() : undefined;
+    const index = ISKUBERNETES === "true" ? await getRandomIndex() : 0;
 
     // Remove peer from WireGuard
     await removePeerFunction(clientPublicKey, index, ISKUBERNETES);
