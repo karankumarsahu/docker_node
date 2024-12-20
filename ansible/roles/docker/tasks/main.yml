@@ -33,11 +33,9 @@
     state: started
     restart_policy: always
     networks:
-      - name: wg-network  # Corrected the format here
-
-- name: Ensure the WireGuard configuration files have the correct permissions on the host
-  command: chown -R 1000:1000 /etc/wireguard/wg0.conf
-  become: true
+      - name: wg-network  # Ensure Redis is on the same network as the Node.js container
+    exposed_ports:
+      - "6379"  # Expose Redis default port to be accessible
 
 - name: Run Node.js container for WireGuard
   docker_container:
@@ -48,13 +46,14 @@
     ports:
       - "{{ random_port }}:{{ random_port }}"
     volumes:
-      - "{{ wg_config_path }}:/etc/wireguard:rw"  # Ensure the directory is read-write
+      - "{{ wg_config_path }}:/etc/wireguard"
     privileged: true
     networks:
-      - name: wg-network
-    user: "1000"  # Run as UID 1000 inside the container
+      - name: wg-network  # Ensure Node.js container is on the same network
     env:
       ISANSIBLE: "true"
       ADDRESS: "10.0.0.0"
       PORT: "8000"
-      REDIS_URL: "redis://redis:6379"
+      REDIS_URL: "redis://redis:6379"  # Redis should be accessible via container name in the same network
+    security_opt:
+      - "capability=NET_ADMIN"  # Ensure NET_ADMIN capability for WireGuard
