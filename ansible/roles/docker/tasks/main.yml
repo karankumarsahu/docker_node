@@ -37,7 +37,7 @@
     volumes:
       - "{{ wg_config_path }}:/etc/wireguard"
     privileged: true
-    environment:
+    env:
       - ISANSIBLE: "true"
       - ADDRESS: "10.0.0.0"
       - PORT: "8000"
