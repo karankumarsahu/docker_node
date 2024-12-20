@@ -36,6 +36,10 @@ app.listen(PORT, async () => {
     console.log(`Server is running on ${PORT}`);
 
     console.log(`ISANSIBLE: ${ISANSIBLE}`);
+    console.log(`PUBLIC_KEY_PATH: ${PUBLIC_KEY_PATH}`);
+    console.log(`PRIVATE_KEY_PATH: ${PRIVATE_KEY_PATH}`);
+    console.log(`CONFIG_PATH: ${CONFIG_PATH}`);
+    console.log(`RANDOM_PORT_PATH: ${RANDOM_PORT_PATH}`);
     if (ISANSIBLE === "false") {
       const { privateKey, publicKey } = await generateKeys();
       await saveKeys(privateKey, publicKey);

@@ -46,8 +46,6 @@
     volumes:
       - "{{ wg_config_path }}:/etc/wireguard"
     privileged: true
-    cap_add:
-      - NET_ADMIN  # Grant NET_ADMIN capability to the container
     networks:
       - name: wg-network  # Ensure Node.js container is on the same network as Redis
     env:
