@@ -38,8 +38,9 @@
       - "{{ wg_config_path }}:/etc/wireguard"
     privileged: true
     env:
-      - ISANSIBLE: "true"
-      - ADDRESS: "10.0.0.0"
-      - PORT: "8000"
-      - REDIS_URL: "redis://redis:6379"
+      ISANSIBLE: "true"
+      ADDRESS: "10.0.0.0"
+      PORT: "8000"
+      REDIS_URL: "redis://redis:6379"
+
 
