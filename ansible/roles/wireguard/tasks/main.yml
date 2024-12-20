@@ -25,6 +25,8 @@
     owner: root
     group: root
     mode: '0600'
+  vars:
+    wg_port_dynamic: "{{ random_port.stdout }}"
 
 - name: Save port information
   copy:
