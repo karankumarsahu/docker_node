@@ -28,6 +28,7 @@
   docker_image:
     name: node_wireguard
     tag: latest
+    source: build
     build:
       path: /home/ubuntu/updated_node/docker_node
   register: build_result
