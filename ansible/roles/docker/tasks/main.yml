@@ -1,7 +1,6 @@
 - name: Install required packages
   apt:
     name:
-      - docker.io
       - wireguard
       - nodejs
       - npm
@@ -11,12 +10,6 @@
 - name: Install WireGuard
   apt:
     name: wireguard
-    state: present
-    update_cache: yes
-
-- name: Install Docker
-  apt:
-    name: docker.io
     state: present
     update_cache: yes
 
