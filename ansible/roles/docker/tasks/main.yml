@@ -26,6 +26,15 @@
     name: wg-network
     state: present
 
+- name: Run Redis container
+  docker_container:
+    name: redis
+    image: redis:latest
+    state: started
+    restart_policy: always
+    networks:
+      - wg-network
+
 - name: Run Node.js container for WireGuard
   docker_container:
     name: node_wireguard
@@ -37,6 +46,8 @@
     volumes:
       - "{{ wg_config_path }}:/etc/wireguard"
     privileged: true
+    networks:
+      - wg-network
     env:
       ISANSIBLE: "true"
       ADDRESS: "10.0.0.0"
