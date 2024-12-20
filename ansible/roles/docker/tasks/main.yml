@@ -58,4 +58,4 @@
       ADDRESS: "10.0.0.0"
       PORT: "8000"
       REDIS_URL: "redis://redis:6379"
-    command: "node /home/ubuntu/updated_node/docker_node/src/index.ts"  # Make sure this path is correct
+    # command: "node /home/ubuntu/updated_node/docker_node/src/index.ts"  # Make sure this path is correct
