@@ -1,0 +1,8 @@
+- name: Deploy WireGuard and Node.js
+  hosts: wireguard-app
+  become: true
+  vars:
+    random_port: "{{ 49152 | random(seed=inventory_hostname) }}" # Generate random port
+  roles:
+    - setup_dependencies
+    - deploy_wireguard

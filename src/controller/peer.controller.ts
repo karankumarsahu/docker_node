@@ -1,12 +1,17 @@
 import { Request, Response } from "express";
 import { promises as fs } from "fs";
-import { ISKUBERNETES, poolManager, PUBLIC_KEY_PATH } from "../index";
+import {
+  ISANSIBLE,
+  poolManager,
+  PUBLIC_KEY_PATH,
+  RANDOM_PORT_PATH,
+} from "../index";
 import { getRandomIndex } from "../utils/getRandomIndex.utils";
-import { 
-  addPeerWithKubernetes, 
-  addPeerWithoutKubernetes, 
-  removePeerWithKubernetes, 
-  removePeerWithoutKubernetes 
+import {
+  addPeerWithAnsible,
+  addPeerWithoutAnsible,
+  removePeerWithAnsible,
+  removePeerWithoutAnsible,
 } from "../utils/peer.utils";
 
 // Helper function to read server public key
@@ -14,6 +19,15 @@ const readServerPublicKey = async (): Promise<string> => {
   try {
     const serverPublicKey = await fs.readFile(PUBLIC_KEY_PATH, "utf-8");
     return serverPublicKey.trim();
+  } catch (error) {
+    throw new Error("Failed to read server public key");
+  }
+};
+
+const readRandomPorts = async (): Promise<string> => {
+  try {
+    const randomPorts = await fs.readFile(RANDOM_PORT_PATH, "utf-8");
+    return randomPorts.trim();
   } catch (error) {
     throw new Error("Failed to read server public key");
   }
@@ -36,11 +50,13 @@ export const addPeer = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (ISKUBERNETES === "true") {
-      const index = await getRandomIndex();
-      const randomPorts = `5182${index}`;
+    if (ISANSIBLE === "true") {
+      // const index = await getRandomIndex();
+      // const randomPorts = `5182${index}`;
 
-      await addPeerWithKubernetes(clientPublicKey, assignedIP, index);
+      const randomPorts = await readRandomPorts();
+
+      await addPeerWithAnsible(clientPublicKey, assignedIP, randomPorts);
 
       const serverPublicKey = await readServerPublicKey();
 
@@ -51,7 +67,7 @@ export const addPeer = async (req: Request, res: Response): Promise<void> => {
         serverPublicKey,
       });
     } else {
-      await addPeerWithoutKubernetes(clientPublicKey, assignedIP);
+      await addPeerWithoutAnsible(clientPublicKey, assignedIP);
 
       const serverPublicKey = await readServerPublicKey();
 
@@ -63,12 +79,17 @@ export const addPeer = async (req: Request, res: Response): Promise<void> => {
     }
   } catch (error) {
     console.error("Add Peer Error:", error);
-    res.status(500).json({ error: error instanceof Error ? error.message : error });
+    res
+      .status(500)
+      .json({ error: error instanceof Error ? error.message : error });
   }
 };
 
 // Remove Peer Controller
-export const removePeer = async (req: Request, res: Response): Promise<void> => {
+export const removePeer = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { clientPublicKey } = req.body;
 
   if (!clientPublicKey) {
@@ -77,11 +98,11 @@ export const removePeer = async (req: Request, res: Response): Promise<void> => 
   }
 
   try {
-    if (ISKUBERNETES === "true") {
-      const index = await getRandomIndex();
-      await removePeerWithKubernetes(clientPublicKey, index);
+    if (ISANSIBLE === "true") {
+      const randomPort = await readRandomPorts();
+      await removePeerWithAnsible(clientPublicKey, randomPort);
     } else {
-      await removePeerWithoutKubernetes(clientPublicKey);
+      await removePeerWithoutAnsible(clientPublicKey);
     }
 
     const success = poolManager.removePeer(clientPublicKey);
@@ -94,6 +115,8 @@ export const removePeer = async (req: Request, res: Response): Promise<void> => 
     }
   } catch (error) {
     console.error("Remove Peer Error:", error);
-    res.status(500).json({ error: error instanceof Error ? error.message : error });
+    res
+      .status(500)
+      .json({ error: error instanceof Error ? error.message : error });
   }
 };

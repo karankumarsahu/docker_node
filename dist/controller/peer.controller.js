@@ -28,7 +28,7 @@ const addPeer = async (req, res) => {
             res.status(500).json({ error: "No available IPs" });
             return;
         }
-        if (index_1.ISKUBERNETES === "true") {
+        if (index_1.ISANSIBLE === "true") {
             const index = await (0, getRandomIndex_utils_1.getRandomIndex)();
             const randomPorts = `5182${index}`;
             await (0, peer_utils_1.addPeerWithKubernetes)(clientPublicKey, assignedIP, index);
@@ -64,7 +64,7 @@ const removePeer = async (req, res) => {
         return;
     }
     try {
-        if (index_1.ISKUBERNETES === "true") {
+        if (index_1.ISANSIBLE === "true") {
             const index = await (0, getRandomIndex_utils_1.getRandomIndex)();
             await (0, peer_utils_1.removePeerWithKubernetes)(clientPublicKey, index);
         }

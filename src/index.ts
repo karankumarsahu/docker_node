@@ -13,14 +13,15 @@ app.use(express.json());
 // Load environment variables from .env file
 dotenv.config();
 
-// const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8000;
 export const ADDRESS = process.env.ADDRESS || "10.8.0.0/24";
-export const ISKUBERNETES: string = process.env.ISKUBERNETES || "false";
+export const ISANSIBLE: string = process.env.ISANSIBLE || "false";
 
 // WireGuard Configuration Paths
-export const PRIVATE_KEY_PATH = "/etc/wireguard/private.key";
-export const PUBLIC_KEY_PATH = "/etc/wireguard/public.key";
+export const PRIVATE_KEY_PATH = "/etc/wireguard/private_key";
+export const PUBLIC_KEY_PATH = "/etc/wireguard/public_key";
 export const CONFIG_PATH = "/etc/wireguard/wg0.conf";
+export const RANDOM_PORT_PATH = "/etc/wireguard/wg.port";
 
 // IP Pool Manager Instance
 export const poolManager = createIPPoolManager(ADDRESS + "/24");
@@ -30,66 +31,24 @@ import peerRoutes from "./routes/peer.route";
 
 app.use("/api/peer", peerRoutes);
 
+app.listen(PORT, async () => {
+  try {
+    console.log(`Server is running on ${PORT}`);
 
-// app.listen(PORT, async () => {
-//   try {
-//     console.log(`Server is running on ${PORT}`);
-
-//     console.log(`ISKUBERNETES: ${ISKUBERNETES}`);
-//     if (ISKUBERNETES === "false") {
-//       const { privateKey, publicKey } = await generateKeys();
-//       await saveKeys(privateKey, publicKey);
-//       await createConfigFile(privateKey);
-//       await setupWireGuardInterface();
-//     }
-//   } catch (error) {
-//     if (error instanceof Error) {
-//       console.error("Initialization error:", error.message);
-//     }
-//   }
-// });
-
-// app.get("/", (_req, res) => {
-//   res.status(200).send("Welcome to the WireGuard Server!");
-// });
-
-
-import dgram from "dgram";
-
-// Create a UDP socket
-const server = dgram.createSocket("udp4");
-
-const PORT = 51820;
-
-// Event: Socket is ready to receive messages
-server.on("listening", () => {
-  const address = server.address();
-  console.log(`UDP server is listening on ${address.address}:${address.port}`);
+    console.log(`ISANSIBLE: ${ISANSIBLE}`);
+    if (ISANSIBLE === "false") {
+      const { privateKey, publicKey } = await generateKeys();
+      await saveKeys(privateKey, publicKey);
+      await createConfigFile(privateKey);
+      await setupWireGuardInterface();
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Initialization error:", error.message);
+    }
+  }
 });
 
-// Event: Received a message
-server.on("message", (msg, rinfo) => {
-  console.log(`Message received: ${msg} from ${rinfo.address}:${rinfo.port}`);
-  // Reply to the client
-  const response = `Received your message: ${msg}`;
-  server.send(response, rinfo.port, rinfo.address, (err) => {
-    if (err) console.error("Error sending response:", err);
-  });
+app.get("/", (_req, res) => {
+  res.status(200).send("Welcome to the WireGuard Server!");
 });
-
-// Event: Error handling
-server.on("error", (err) => {
-  console.error(`Server error:\n${err.stack}`);
-  server.close();
-});
-
-// Event: Close the socket
-server.on("close", () => {
-  console.log("Server closed");
-});
-
-// Bind the server to the port
-server.bind(PORT, "0.0.0.0", () => {
-  console.log(`Server bound to port ${PORT}`);
-});
-

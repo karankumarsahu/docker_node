@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.poolManager = exports.CONFIG_PATH = exports.PUBLIC_KEY_PATH = exports.PRIVATE_KEY_PATH = exports.ISKUBERNETES = exports.ADDRESS = void 0;
+exports.poolManager = exports.CONFIG_PATH = exports.PUBLIC_KEY_PATH = exports.PRIVATE_KEY_PATH = exports.ISANSIBLE = exports.ADDRESS = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const ipPoolManager_1 = require("./ipPoolManager");
@@ -13,7 +13,7 @@ app.use(express_1.default.json());
 dotenv_1.default.config();
 // const PORT = process.env.PORT || 8000;
 exports.ADDRESS = process.env.ADDRESS || "10.8.0.0/24";
-exports.ISKUBERNETES = process.env.ISKUBERNETES || "false";
+exports.ISANSIBLE = process.env.ISANSIBLE || "false";
 // WireGuard Configuration Paths
 exports.PRIVATE_KEY_PATH = "/etc/wireguard/private.key";
 exports.PUBLIC_KEY_PATH = "/etc/wireguard/public.key";
@@ -21,13 +21,13 @@ exports.CONFIG_PATH = "/etc/wireguard/wg0.conf";
 // IP Pool Manager Instance
 exports.poolManager = (0, ipPoolManager_1.createIPPoolManager)(exports.ADDRESS + "/24");
 // API Endpoints
-const peer_route_1 = __importDefault(require("./routes/peer.route"));
-app.use("/api/peer", peer_route_1.default);
+// import peerRoutes from "./routes/peer.route";
+// app.use("/api/peer", peerRoutes);
 // app.listen(PORT, async () => {
 //   try {
 //     console.log(`Server is running on ${PORT}`);
-//     console.log(`ISKUBERNETES: ${ISKUBERNETES}`);
-//     if (ISKUBERNETES === "false") {
+//     console.log(`ISANSIBLE: ${ISANSIBLE}`);
+//     if (ISANSIBLE === "false") {
 //       const { privateKey, publicKey } = await generateKeys();
 //       await saveKeys(privateKey, publicKey);
 //       await createConfigFile(privateKey);
