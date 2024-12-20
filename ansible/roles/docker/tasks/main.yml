@@ -6,18 +6,6 @@
     state: present
     update_cache: yes
 
-- name: Install WireGuard
-  apt:
-    name: wireguard
-    state: present
-    update_cache: yes
-
-- name: Install Docker
-  apt:
-    name: docker.io
-    state: present
-    update_cache: yes
-
 - name: Ensure Docker is started
   service:
     name: docker
@@ -32,6 +20,11 @@
     build:
       path: /home/ubuntu/updated_node/docker_node
   register: build_result
+
+- name: Create the Docker network for WireGuard
+  docker_network:
+    name: wg-network
+    state: present
 
 - name: Run Node.js container for WireGuard
   docker_container:
@@ -49,8 +42,7 @@
     networks:
       - wg-network
     environment:
-      - PORT = 8000
-      - ADDRESS = 10.8.0.0
-      - ISANSIBLE = true
-      - REDIS_URL="redis://redis:6379"
-
+      PORT: "8000"
+      ADDRESS: "10.8.0.0"
+      ISANSIBLE: "true"
+      REDIS_URL: "redis://redis:6379"
