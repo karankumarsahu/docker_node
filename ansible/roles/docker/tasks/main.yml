@@ -33,7 +33,7 @@
     state: started
     restart_policy: always
     networks:
-      - name: wg-network  # Ensure Redis is on the same network
+      - name: wg-network
 
 - name: Run Node.js container for WireGuard
   docker_container:
@@ -47,9 +47,21 @@
       - "{{ wg_config_path }}:/etc/wireguard"
     privileged: true
     networks:
-      - name: wg-network  # Ensure Node.js container is on the same network as Redis
+      - name: wg-network
     env:
       ISANSIBLE: "true"
       ADDRESS: "10.0.0.0"
       PORT: "8000"
-      REDIS_URL: "redis://redis:6379"  # Redis URL using the container name for inter-container communication
+      REDIS_URL: "redis://redis:6379"
+    # Make sure permissions are correct on the mounted config file
+    command: >
+      bash -c "chown -R 1000:1000 /etc/wireguard && node /home/ubuntu/updated_node/docker_node/src/index.ts"  # Adjust the path
+    # You can also specify the user running the container if needed
+    user: "1000"  # This is the UID of the user that should have permissions to access the config file
+
+- name: Ensure correct file permissions on config file
+  file:
+    path: "{{ wg_config_path }}"
+    owner: "1000"
+    group: "1000"
+    mode: "0644"
