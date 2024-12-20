@@ -4,5 +4,5 @@
   vars:
     random_port: "{{ 49152 | random(seed=inventory_hostname) }}" # Generate random port
   roles:
-    - docker
-    - wireguard
+    - ../roles/docker
+    - ../roles/wireguard
