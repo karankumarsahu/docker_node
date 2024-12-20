@@ -18,8 +18,8 @@ export const addPeerWithAnsible = async (
     await executeCommand("wg-quick save wg0");
 
     // Save to Redis
-    const value = JSON.stringify({ randomPort, assignedIP });
-    await redisClient.set(clientPublicKey, value);
+    // const value = JSON.stringify({ randomPort, assignedIP });
+    await redisClient.set(clientPublicKey, randomPort);
     console.log(`Added peer (Ansible): ${clientPublicKey}, IP: ${assignedIP}, Index: ${randomPort}`);
   } catch (error) {
     console.error("Error in addPeerWithAnsible:", error instanceof Error ? error.message : error);
