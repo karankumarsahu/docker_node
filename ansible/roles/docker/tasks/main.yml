@@ -37,7 +37,4 @@
     volumes:
       - "{{ wg_config_path }}:/etc/wireguard"
     privileged: true
-    cap_add:
-      - NET_ADMIN
-    networks:
-      - wg-network
+
