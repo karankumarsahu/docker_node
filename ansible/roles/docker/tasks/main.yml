@@ -29,7 +29,7 @@
     name: node_wireguard
     tag: latest
     build:
-      path: /home/ubuntu/updated_node/docker_node/Dockerfile
+      path: /home/ubuntu/updated_node/docker_node
   register: build_result
 
 - name: Run Node.js container for WireGuard
