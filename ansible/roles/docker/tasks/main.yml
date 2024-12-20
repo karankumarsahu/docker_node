@@ -51,6 +51,6 @@
     environment:
       - PORT = 8000
       - ADDRESS = 10.8.0.0
-      - ISANSIBLE = false
+      - ISANSIBLE = true
       - REDIS_URL="redis://redis:6379"
 
