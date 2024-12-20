@@ -1,3 +1,4 @@
 wg_config_path: /etc/wireguard
-wg_port_range_start: 51520
-wg_port_range_end: 51522
+wg_address: 10.0.0.0
+wg_port_range_start: 51820
+wg_port_range_end: 51822
