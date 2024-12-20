@@ -42,7 +42,7 @@
     networks:
       - wg-network
     environment:
-      PORT: "8000"
-      ADDRESS: "10.8.0.0"
-      ISANSIBLE: "true"
-      REDIS_URL: "redis://redis:6379"
+      - PORT=8000
+      - ADDRESS=10.8.0.0
+      - ISANSIBLE=true
+      - REDIS_URL=redis://redis:6379
