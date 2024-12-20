@@ -40,7 +40,7 @@
     state: started
     restart_policy: always
     ports:
-      - "{{ random_port.stdout }}:{{ random_port.stdout }}"
+      - "{{ random_port }}:{{ random_port }}"
     volumes:
       - "{{ wg_config_path }}:/etc/wireguard"
     privileged: true
