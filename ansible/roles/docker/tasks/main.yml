@@ -33,9 +33,7 @@
     state: started
     restart_policy: always
     networks:
-      - name: wg-network  # Ensure Redis is on the same network as the Node.js container
-    exposed_ports:
-      - "6379"  # Expose Redis default port to be accessible
+      - name: wg-network  # Ensure Redis is on the same network
 
 - name: Run Node.js container for WireGuard
   docker_container:
@@ -48,12 +46,12 @@
     volumes:
       - "{{ wg_config_path }}:/etc/wireguard"
     privileged: true
+    cap_add:
+      - NET_ADMIN  # Grant NET_ADMIN capability to the container
     networks:
-      - name: wg-network  # Ensure Node.js container is on the same network
+      - name: wg-network  # Ensure Node.js container is on the same network as Redis
     env:
       ISANSIBLE: "true"
       ADDRESS: "10.0.0.0"
       PORT: "8000"
-      REDIS_URL: "redis://redis:6379"  # Redis should be accessible via container name in the same network
-    security_opt:
-      - "capability=NET_ADMIN"  # Ensure NET_ADMIN capability for WireGuard
+      REDIS_URL: "redis://redis:6379"  # Redis URL using the container name for inter-container communication
