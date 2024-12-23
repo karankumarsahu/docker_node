@@ -1,84 +1,81 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removePeerWithoutKubernetes = exports.removePeerWithKubernetes = exports.addPeerWithoutKubernetes = exports.addPeerWithKubernetes = void 0;
-const redisClient_1 = __importDefault(require("../redis/redisClient"));
+exports.removePeerWithoutAnsible = exports.removePeerWithAnsible = exports.addPeerWithoutAnsible = exports.addPeerWithAnsible = void 0;
 const executeCommand_utils_1 = require("./executeCommand.utils");
-// Add peer in Kubernetes environment
-const addPeerWithKubernetes = async (clientPublicKey, assignedIP, index) => {
+// Add peer in Ansible environment
+const addPeerWithAnsible = async (clientPublicKey, assignedIP, randomPort) => {
     try {
         // Validate inputs
-        if (!clientPublicKey || !assignedIP || index < 0) {
-            throw new Error("Invalid input provided to addPeerWithKubernetes");
-        }
-        const command = `kubectl exec wireguard-${index} -- wg set wg0 peer ${clientPublicKey} allowed-ips ${assignedIP}/32`;
-        await (0, executeCommand_utils_1.executeCommand)(command);
-        await (0, executeCommand_utils_1.executeCommand)("wg-quick save wg0");
-        // Save to Redis
-        await redisClient_1.default.set(clientPublicKey, index);
-        console.log(`Added peer (Kubernetes): ${clientPublicKey}, IP: ${assignedIP}, Index: ${index}`);
-    }
-    catch (error) {
-        console.error("Error in addPeerWithKubernetes:", error instanceof Error ? error.message : error);
-        throw error;
-    }
-};
-exports.addPeerWithKubernetes = addPeerWithKubernetes;
-// Add peer in non-Kubernetes environment
-const addPeerWithoutKubernetes = async (clientPublicKey, assignedIP) => {
-    try {
-        // Validate inputs
-        if (!clientPublicKey || !assignedIP) {
-            throw new Error("Invalid input provided to addPeerWithoutKubernetes");
+        if (!clientPublicKey || !assignedIP || !randomPort) {
+            throw new Error("Invalid input provided to addPeerWithAnsible");
         }
         const command = `wg set wg0 peer ${clientPublicKey} allowed-ips ${assignedIP}/32`;
         await (0, executeCommand_utils_1.executeCommand)(command);
         await (0, executeCommand_utils_1.executeCommand)("wg-quick save wg0");
-        console.log(`Added peer (Non-Kubernetes): ${clientPublicKey}, IP: ${assignedIP}`);
+        // // Save to Redis
+        // const value = JSON.stringify({ randomPort, assignedIP });
+        // await redisClient.set(clientPublicKey, randomPort);
+        console.log(`Added peer (Ansible): ${clientPublicKey}, IP: ${assignedIP}, Port: ${randomPort}`);
     }
     catch (error) {
-        console.error("Error in addPeerWithoutKubernetes:", error instanceof Error ? error.message : error);
+        console.error("Error in addPeerWithAnsible:", error instanceof Error ? error.message : error);
         throw error;
     }
 };
-exports.addPeerWithoutKubernetes = addPeerWithoutKubernetes;
-// Remove peer in Kubernetes environment
-const removePeerWithKubernetes = async (clientPublicKey, index) => {
+exports.addPeerWithAnsible = addPeerWithAnsible;
+// Add peer in non-Ansible environment
+const addPeerWithoutAnsible = async (clientPublicKey, assignedIP) => {
     try {
         // Validate inputs
-        if (!clientPublicKey || index < 0) {
-            throw new Error("Invalid input provided to removePeerWithKubernetes");
+        if (!clientPublicKey || !assignedIP) {
+            throw new Error("Invalid input provided to addPeerWithoutAnsible");
         }
-        const command = `kubectl exec wireguard-${index} -- wg set wg0 peer ${clientPublicKey} remove`;
+        const command = `wg set wg0 peer ${clientPublicKey} allowed-ips ${assignedIP}/32`;
         await (0, executeCommand_utils_1.executeCommand)(command);
         await (0, executeCommand_utils_1.executeCommand)("wg-quick save wg0");
-        // Remove from Redis
-        await redisClient_1.default.del(clientPublicKey);
-        console.log(`Removed peer (Kubernetes): ${clientPublicKey}, Index: ${index}`);
+        console.log(`Added peer (Non-Ansible): ${clientPublicKey}, IP: ${assignedIP}`);
     }
     catch (error) {
-        console.error("Error in removePeerWithKubernetes:", error instanceof Error ? error.message : error);
+        console.error("Error in addPeerWithoutAnsible:", error instanceof Error ? error.message : error);
         throw error;
     }
 };
-exports.removePeerWithKubernetes = removePeerWithKubernetes;
-// Remove peer in non-Kubernetes environment
-const removePeerWithoutKubernetes = async (clientPublicKey) => {
+exports.addPeerWithoutAnsible = addPeerWithoutAnsible;
+// Remove peer in Ansible environment
+const removePeerWithAnsible = async (clientPublicKey) => {
     try {
         // Validate inputs
         if (!clientPublicKey) {
-            throw new Error("Invalid input provided to removePeerWithoutKubernetes");
+            throw new Error("Invalid input provided to removePeerWithAnsible");
         }
         const command = `wg set wg0 peer ${clientPublicKey} remove`;
         await (0, executeCommand_utils_1.executeCommand)(command);
         await (0, executeCommand_utils_1.executeCommand)("wg-quick save wg0");
-        console.log(`Removed peer (Non-Kubernetes): ${clientPublicKey}`);
+        // // Remove from Redis
+        // await redisClient.del(clientPublicKey);
+        // console.log(`Removed peer (Ansible): ${clientPublicKey}, Index: ${randomPort}`);
     }
     catch (error) {
-        console.error("Error in removePeerWithoutKubernetes:", error instanceof Error ? error.message : error);
+        console.error("Error in removePeerWithAnsible:", error instanceof Error ? error.message : error);
         throw error;
     }
 };
-exports.removePeerWithoutKubernetes = removePeerWithoutKubernetes;
+exports.removePeerWithAnsible = removePeerWithAnsible;
+// Remove peer in non-Ansible environment
+const removePeerWithoutAnsible = async (clientPublicKey) => {
+    try {
+        // Validate inputs
+        if (!clientPublicKey) {
+            throw new Error("Invalid input provided to removePeerWithoutAnsible");
+        }
+        const command = `wg set wg0 peer ${clientPublicKey} remove`;
+        await (0, executeCommand_utils_1.executeCommand)(command);
+        await (0, executeCommand_utils_1.executeCommand)("wg-quick save wg0");
+        console.log(`Removed peer (Non-Ansible): ${clientPublicKey}`);
+    }
+    catch (error) {
+        console.error("Error in removePeerWithoutAnsible:", error instanceof Error ? error.message : error);
+        throw error;
+    }
+};
+exports.removePeerWithoutAnsible = removePeerWithoutAnsible;

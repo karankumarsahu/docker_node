@@ -1,8 +1,0 @@
-- name: Deploy WireGuard and Node.js
-  hosts: wireguard-app
-  become: true
-  vars:
-    random_port: "{{ 49152 | random(seed=inventory_hostname) }}" # Generate random port
-  roles:
-    - /home/ubuntu/updated_node/docker_node/ansible/roles/docker
-    - /home/ubuntu/updated_node/docker_node/ansible/roles/wireguard

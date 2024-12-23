@@ -3,10 +3,10 @@ import { promises as fs } from "fs";
 import {
   ISANSIBLE,
   poolManager,
-  PUBLIC_KEY_PATH,
-  RANDOM_PORT_PATH,
+  PUBLIC_KEY_PATH
 } from "../index";
-import { getRandomIndex } from "../utils/getRandomIndex.utils";
+import redisClient from "../redis/redisClient";
+import { getSingleNetworkInterface } from "../utils/generateUniquePort.utils";
 import {
   addPeerWithAnsible,
   addPeerWithoutAnsible,
@@ -24,14 +24,14 @@ const readServerPublicKey = async (): Promise<string> => {
   }
 };
 
-const readRandomPorts = async (): Promise<string> => {
-  try {
-    const randomPorts = await fs.readFile(RANDOM_PORT_PATH, "utf-8");
-    return randomPorts.trim();
-  } catch (error) {
-    throw new Error("Failed to read server public key");
-  }
-};
+// const readRandomPorts = async (): Promise<string> => {
+//   try {
+//     const randomPorts = await fs.readFile(RANDOM_PORT_PATH, "utf-8");
+//     return randomPorts.trim();
+//   } catch (error) {
+//     throw new Error("Failed to read server public key");
+//   }
+// };
 
 // Add Peer Controller
 export const addPeer = async (req: Request, res: Response): Promise<void> => {
@@ -54,16 +54,39 @@ export const addPeer = async (req: Request, res: Response): Promise<void> => {
       // const index = await getRandomIndex();
       // const randomPorts = `5182${index}`;
 
-      const randomPorts = await readRandomPorts();
+      // const randomPorts = await readRandomPorts();
+      const ip = getSingleNetworkInterface();
+      const randomPort = await redisClient.get(ip);
 
-      await addPeerWithAnsible(clientPublicKey, assignedIP, randomPorts);
+      console.log(randomPort)
+
+      
+      if (!randomPort) {
+        throw new Error("Random ports not found");
+      }
+
+      // Save peer info in Redis
+    const result = await redisClient.set(
+      `peer:${clientPublicKey}`,
+      JSON.stringify({
+          assignedIP,
+          associatedInstance: ip,
+          wireGuardPort: randomPort,
+      })
+  );
+
+      if (!result) {
+        throw new Error("Failed to save peer info in Redis");
+      }
+
+      await addPeerWithAnsible(clientPublicKey, assignedIP, randomPort);
 
       const serverPublicKey = await readServerPublicKey();
 
       res.status(200).json({
         message: "Peer added successfully",
         assignedIP,
-        randomPorts,
+        randomPort,
         serverPublicKey,
       });
     } else {
@@ -74,7 +97,7 @@ export const addPeer = async (req: Request, res: Response): Promise<void> => {
       res.status(200).json({
         message: "Peer added successfully",
         assignedIP,
-        serverPublicKey,
+        serverPublicKey
       });
     }
   } catch (error) {
@@ -99,8 +122,32 @@ export const removePeer = async (
 
   try {
     if (ISANSIBLE === "true") {
-      const randomPort = await readRandomPorts();
-      await removePeerWithAnsible(clientPublicKey, randomPort);
+      const publicKey = await redisClient.get(`peer:${clientPublicKey}`);
+
+      if (!publicKey) {
+        throw new Error(`Peer with publicKey ${clientPublicKey} not found`);
+      }
+      
+      const peerData = JSON.parse(publicKey);
+
+      if (!peerData) {
+          throw new Error(`Peer with publicKey ${publicKey} not found`);
+      }
+  
+      const { associatedInstance } = peerData;
+  
+      // Publish removal to the associated instance
+      redisClient.publish(
+          'wireguard-sync',
+          JSON.stringify({
+              action: 'remove-peer',
+              publicKey,
+              targetInstance: associatedInstance,
+          })
+      );
+  
+      // Remove peer entry from Redis
+      await redisClient.del(`peer:${publicKey}`);
     } else {
       await removePeerWithoutAnsible(clientPublicKey);
     }

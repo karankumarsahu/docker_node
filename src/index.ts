@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
+import os from "os";
 import { createIPPoolManager } from "./ipPoolManager";
 import { generateKeys, saveKeys } from "./utils/keys.utils";
 import {
@@ -17,6 +18,9 @@ const PORT = process.env.PORT || 8000;
 export const ADDRESS = process.env.ADDRESS || "10.8.0.0/24";
 export const ISANSIBLE: string = process.env.ISANSIBLE || "false";
 
+export const BASE_PORT = 51820;
+export const PORT_RANGE = 100;
+
 // WireGuard Configuration Paths
 export const PRIVATE_KEY_PATH = "/etc/wireguard/private_key";
 export const PUBLIC_KEY_PATH = "/etc/wireguard/public_key";
@@ -28,6 +32,8 @@ export const poolManager = createIPPoolManager(ADDRESS + "/24");
 
 // API Endpoints
 import peerRoutes from "./routes/peer.route";
+import { managePortsAndConfig } from "./utils/generateUniquePort.utils";
+import { getNetworkInterfaces } from "./utils/getNetworkInterface.utils";
 
 app.use("/api/peer", peerRoutes);
 
@@ -35,16 +41,21 @@ app.listen(PORT, async () => {
   try {
     console.log(`Server is running on ${PORT}`);
 
-    console.log(`ISANSIBLE: ${ISANSIBLE}`);
-    console.log(`PUBLIC_KEY_PATH: ${PUBLIC_KEY_PATH}`);
-    console.log(`PRIVATE_KEY_PATH: ${PRIVATE_KEY_PATH}`);
-    console.log(`CONFIG_PATH: ${CONFIG_PATH}`);
-    console.log(`RANDOM_PORT_PATH: ${RANDOM_PORT_PATH}`);
+
     if (ISANSIBLE === "false") {
       const { privateKey, publicKey } = await generateKeys();
       await saveKeys(privateKey, publicKey);
       await createConfigFile(privateKey);
       await setupWireGuardInterface();
+    }
+    else{
+      console.log(`ISANSIBLE: ${ISANSIBLE}`);
+      const { privateKey, publicKey } = await generateKeys();
+      await saveKeys(privateKey, publicKey);
+      await createConfigFile(privateKey);
+      await setupWireGuardInterface();
+      getNetworkInterfaces();
+      await managePortsAndConfig(privateKey)
     }
   } catch (error) {
     if (error instanceof Error) {
